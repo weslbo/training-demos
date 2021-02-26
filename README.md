@@ -60,7 +60,7 @@ Connect the Synapse Analytics to GitHub by following [article](https://docs.micr
 | Setting | Value |
 | :------ | :-------------- |
 | **Repository type** | GitHub |
-| **GitHub account** | weslbo |
+| **GitHub account** | [your account] |
 | **Repository name** | training-demos |
 | **Collaboration branch** | main |
 | **Publish branch** | workspace_publish |
@@ -71,7 +71,7 @@ Connect the Data Factory to GitHub
 | Setting | Value |
 | :------ | :-------------- |
 | **Repository type** | GitHub |
-| **GitHub account** | weslbo |
+| **GitHub account** | [your account] |
 | **Repository name** | training-demos |
 | **Collaboration branch** | main |
 | **Publish branch** | adf_publish |
