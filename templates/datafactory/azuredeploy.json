@@ -1,0 +1,165 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        },
+        "adminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The admin password of the VM"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "datafactory-name": "[concat('datafactory-', parameters('alias'))]",
+        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]",
+        "sql-servername": "[concat('sqlserver-', parameters('alias'))]",
+        "sql-databaseName": "AdventureWorksLT",
+        "synapse-workspace-name": "[concat('synapse-', parameters('alias'))]",
+        "selfHostedIRName": "[concat('SelfHostedIntegrationRuntime-', parameters('alias'))]",
+        "vm-sql-name": "vm-sqlserver",
+        "vm-sql-username": "vm-sqlserver\\azureuser"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-06-01",
+            "name": "[variables('datafactory-name')]",
+            "location": "[resourceGroup().location]",
+            "type": "Microsoft.DataFactory/factories",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {},
+            "resources": [
+                {
+                    "type": "linkedServices",
+                    "apiVersion": "2018-06-01",
+                    "name": "AzureDataLakeStorage",
+                    "dependsOn": [
+                        "[variables('datafactory-name')]"
+                    ],
+                    "properties": {
+                        "type": "AzureBlobFS",
+                        "description": "[concat('Azure Data Lake ', variables('datalake-accountname'))]",
+                        "typeProperties": {
+                            "url": "[concat('https://', variables('datalake-accountname') ,'.dfs.core.windows.net')]"
+                        }
+                    }
+                },
+                {
+                    "type": "linkedServices",
+                    "apiVersion": "2018-06-01",
+                    "name": "AzureSqlDatabase",
+                    "dependsOn": [
+                        "[variables('datafactory-name')]"
+                    ],
+                    "properties": {
+                        "type": "AzureSqlDatabase",
+                        "description": "Connects to the AdventureWorksLT Azure SQL Database",
+                        "typeProperties": {
+                            "connectionString": {
+                                "value": "[concat('Server = tcp:', variables('sql-servername'),'.database.windows.net,1433;Initial Catalog=', variables('sql-databaseName') ,'; Persist Security Info=False; User ID=azureuser; Password=', parameters('adminPassword') ,'; MultipleActiveResultSets = False;Encrypt = True; TrustServerCertificate = False; Connection Timeout = 30;')]",
+                                "type": "SecureString"
+                            }
+                        }
+                    }
+                },
+                {
+                    "type": "linkedservices",
+                    "name": "Synapse SQL Dedicated Pool",
+                    "dependsOn": [
+                        "[variables('datafactory-name')]"
+                    ],
+                    "apiVersion": "2018-06-01",
+                    "properties": {
+                        "type": "AzureSqlDW",
+                        "description": "Azure SQL Data Warehouse linked service",
+                        "typeProperties": {
+                            "connectionString": {
+                                "value": "[concat('Server=tcp:', variables('synapse-workspace-name') ,'.sql.azuresynapse.net,1433;Initial Catalog=SQLPOOL1;Persist Security Info=False;User ID=azureuser;Password=', parameters('adminPassword') ,';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                                "type": "SecureString"
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "[variables('selfHostedIRName')]",
+                    "type": "integrationRuntimes",
+                    "apiVersion": "2018-06-01",
+                    "properties": {
+                        "type": "SelfHosted"
+                    },
+                    "dependsOn": [
+                        "[variables('datafactory-name')]"
+                    ]
+                },
+                {
+                    "name": "[variables('vm-sql-name')]",
+                    "type": "linkedServices",
+                    "apiVersion": "2018-06-01",
+                    "properties": {
+                        "type": "SqlServer",
+                        "typeProperties": {
+                            "connectionString": {
+                                "type": "SecureString",
+                                "value": "[concat('Data Source=', variables('vm-sql-name') ,';Initial Catalog=master;Integrated Security=True;')]",
+                                "userName": "[variables('vm-sql-username')]",
+                                "password": {
+                                    "type": "SecureString",
+                                    "value": "[parameters('adminPassword')]"
+                                }
+                            }
+                        },
+                        "connectVia": {
+                            "referenceName": "[variables('selfHostedIRName')]",
+                            "type": "IntegrationRuntimeReference"
+                        }
+                    },
+                    "dependsOn": [
+                        "[variables('datafactory-name')]",
+                        "[variables('selfHostedIRName')]",
+                        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vm-sql-name'), concat('Install-', variables('selfHostedIRName')))]"
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[concat(variables('datalake-accountname'), '/Microsoft.Authorization/',  '42a098bf-1869-424e-b9d9-762f48b3087c')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]", // Storage Blob Data Contributor
+                "principalId": "[reference(concat('Microsoft.DataFactory/factories/', variables('datafactory-name')), '2018-06-01', 'Full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm-sql-name'), '/', 'Install-', variables('selfHostedIRName'))]",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/datafactory/gatewayInstall.ps1"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File gatewayInstall.ps1 ', listAuthKeys(resourceId('Microsoft.DataFactory/factories/integrationruntimes', variables('datafactory-name'), variables('selfHostedIRName')), '2018-06-01').authKey1)]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

@@ -1,0 +1,90 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        },
+        "adminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The admin password of the VM"
+            }
+        },
+        "userObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+            }
+        },
+        "userUpn": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the UPN login of the user (ex: alias@company.com)"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "sql-servername": "[concat('sqlserver-', parameters('alias'))]",
+        "sql-databaseName": "[concat(variables('sql-servername'),'/AdventureWorksLT')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[variables('sql-servername')]",
+            "location": "[resourceGroup().location]",
+            "kind": "v12.0",
+            "properties": {
+                "administratorLogin": "azureuser",
+                "administratorLoginPassword": "[parameters('adminPassword')]",
+                "version": "12.0",
+                "publicNetworkAccess": "Enabled",
+                "startIpAddress": "0.0.0.0",
+                "endIpAddress": "0.0.0.0"
+            },
+            "resources": [
+            ]
+        },
+        {
+            "name": "[concat(variables('sql-servername'),'/ActiveDirectory')]",
+            "type": "Microsoft.Sql/servers/administrators",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sql-servername'))]"
+            ],
+            "apiVersion": "2019-06-01-preview",
+            "properties": {
+                "administratorType": "ActiveDirectory",
+                "login": "[parameters('userUpn')]",
+                "sid": "[parameters('userObjectId')]",
+                "tenantId": "[subscription().tenantId]"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[variables('sql-databaseName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Basic",
+                "tier": "Basic",
+                "capacity": 5
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sql-servername'))]"
+            ],
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "edition": "Basic",
+                "maxSizeBytes": 104857600,
+                "requestedServiceObjectiveName": "Basic",
+                "sampleName": "AdventureWorksLT"
+            }
+        }
+    ],
+    "outputs": {}
+}

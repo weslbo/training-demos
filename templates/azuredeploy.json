@@ -1,0 +1,216 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        },
+        "adminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The admin password of the VM"
+            }
+        },
+        "userObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the object ID of a user, service principal or security group in the Azure Active Directory tenant for the vault. The object ID must be unique for the list of access policies. Get it by using Get-AzADUser or Get-AzADServicePrincipal cmdlets."
+            }
+        },
+        "userUpn": {
+            "type": "string",
+            "metadata": {
+                "description": "Specifies the UPN login of the user (ex: alias@company.com)"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "network",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/network/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "vm-development",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-development/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "adminPassword": { "value": "[parameters('adminPassword')]" }
+                }
+            },
+            "dependsOn": [
+                "network",
+                "keyvault",
+                "loganalytics"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "vm-sqlserver",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-sqlserver/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "adminPassword": { "value": "[parameters('adminPassword')]" }
+                }
+            },
+            "dependsOn": [
+                "network",
+                "keyvault",
+                "loganalytics"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "storage",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/storage/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "userObjectId": { "value": "[parameters('userObjectId')]" }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "synapse",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/synapse/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "adminPassword": { "value": "[parameters('adminPassword')]" }
+                }
+            },
+            "dependsOn": [
+                "storage"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "datafactory",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/datafactory/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "adminPassword": { "value": "[parameters('adminPassword')]" }
+                }
+            },
+            "dependsOn": [
+                "storage",
+                "sqldb",
+                "vm-sqlserver",
+                "synapse"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "streaming",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/streaming/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" }
+                }
+            },
+            "dependsOn": [
+                "storage"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "sqldb",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/sqldb/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "adminPassword": { "value": "[parameters('adminPassword')]" },
+                    "userUpn": { "value": "[parameters('userUpn')]" },
+                    "userObjectId": { "value": "[parameters('userObjectId')]" }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "keyvault",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/keyvault/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" },
+                    "userObjectId": { "value": "[parameters('userObjectId')]" }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "loganalytics",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/loganalytics/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

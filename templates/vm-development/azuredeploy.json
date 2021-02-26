@@ -1,0 +1,326 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        },
+        "adminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The admin password of the VM"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "vm-dev-name": "vm-development",
+        "vm-dev-networkInterface": "[concat(variables('vm-dev-name'), '-nic')]",
+        "vm-dev-os-disk-name": "[concat(variables('vm-dev-name'), '-disk-os')]",
+        "vm-dev-data-disk-name": "[concat(variables('vm-dev-name'), '-disk-data')]",
+        "virtualNetworkName": "[concat('vnet-', parameters('alias'))]",
+        "vm-dev-subnet-ref": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName')), '/subnets/', 'DevelopmentSubnet')]",
+        "vm-dev-script-extension-choco": "[concat(variables('vm-dev-name'), '/choco')]",
+        "vm-dev-shutdown-name": "[concat('shutdown-computevm-', variables('vm-dev-name'))]",
+        "vm-dev-logicapp-autostart": "[concat(variables('vm-dev-name'), '-logic-start')]",
+        "keyvault-name": "[concat('keyvault', uniqueString(resourceGroup().id))]",
+        "loganalytics-name": "[concat('loganalytics-', parameters('alias'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('vm-dev-name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2020-06-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', variables('vm-dev-networkInterface'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D4s_v3"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "name": "[variables('vm-dev-os-disk-name')]",
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                        }
+                    },
+                    "imageReference": {
+                        "publisher": "microsoftvisualstudio",
+                        "offer": "visualstudio2019latest",
+                        "sku": "vs-2019-ent-latest-win10-n",
+                        "version": "latest"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "[variables('vm-dev-data-disk-name')]",
+                            "lun": "0",
+                            "createOption": "Empty",
+                            "diskSizeGB": "1023",
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vm-dev-networkInterface'))]"
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[variables('vm-dev-name')]",
+                    "adminUsername": "azureuser",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "windowsConfiguration": {
+                        "enableAutomaticUpdates": true,
+                        "provisionVmAgent": true,
+                        "patchSettings": {
+                            "patchMode": "AutomaticByOS"
+                        }
+                    }
+                },
+                "licenseType": "Windows_Client"
+            },
+            "identity": {
+                "type": "systemAssigned"
+            },
+            "zones": [
+                "1"
+            ]
+        },
+        {
+            "name": "[variables('vm-dev-networkInterface')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('vm-dev-subnet-ref')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2018-06-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[variables('vm-dev-script-extension-choco')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-development/vm-deployment.ps1"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', './vm-deployment.ps1')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DevTestLab/schedules",
+            "apiVersion": "2018-09-15",
+            "name": "[variables('vm-dev-shutdown-name')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "status": "Enabled",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "1800"
+                },
+                "timeZoneId": "Central Europe Standard Time",
+                "notificationSettings": {
+                    "status": "Disabled",
+                    "timeInMinutes": 30
+                },
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('vm-dev-name'))]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vm-dev-name'))]"
+            ]
+        },
+        {
+            "name": "[variables('vm-dev-logicapp-autostart')]",
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vm-dev-name'))]"
+            ],
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/schemas/2016-06-01/Microsoft.Logic.json",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$uri": {
+                            "type": "String"
+                        }
+                    },
+                    "triggers": {
+                        "Every_morning_at_7": {
+                            "recurrence": {
+                                "frequency": "Week",
+                                "interval": 1,
+                                "schedule": {
+                                    "hours": [
+                                        "7"
+                                    ],
+                                    "minutes": [
+                                        0
+                                    ],
+                                    "weekDays": [
+                                        "Monday",
+                                        "Tuesday",
+                                        "Wednesday",
+                                        "Thursday",
+                                        "Friday"
+                                    ]
+                                },
+                                "timeZone": "Romance Standard Time"
+                            },
+                            "type": "Recurrence"
+                        }
+                    },
+                    "actions": {
+                        "HTTP": {
+                            "inputs": {
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity"
+                                },
+                                "method": "POST",
+                                "uri": "@parameters('$uri')"
+                            },
+                            "runAfter": {},
+                            "type": "Http"
+                        }
+                    },
+                    "outputs": {
+                    }
+                },
+                "parameters": {
+                    "$uri": {
+                        "type": "String",
+                        "value": "[concat('https://management.azure.com/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Compute/virtualMachines/', variables('vm-dev-name') ,'/start?api-version=2019-12-01')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-09-01",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "name": "[guid(concat(resourceGroup().id), resourceId('Microsoft.Logic/workflows', variables('vm-dev-logicapp-autostart')), '9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]", // Virtual Machine Contributor
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]",
+                "principalId": "[reference(resourceId('Microsoft.Logic/workflows', variables('vm-dev-logicapp-autostart')), '2017-07-01', 'full').identity.principalId]",
+                "scope": "[resourceGroup().id]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Logic/workflows/', variables('vm-dev-logicapp-autostart'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm-dev-name'),'/', 'EndPointProtection')]",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Security",
+                "type": "IaaSAntimalware",
+                "typeHandlerVersion": "1.3",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "AntimalwareEnabled": "true",
+                    "Exclusions": {
+                        "Extensions": ".log;.ldf",
+                        "Paths": "D:\\IISlogs;D:\\DatabaseLogs",
+                        "Processes": "mssence.svc"
+                    },
+
+                    "RealtimeProtectionEnabled": "true",
+                    "ScheduledScanSettings": {
+                        "isEnabled": "true",
+                        "scanType": "Quick",
+                        "day": "7",
+                        "time": "120"
+                    }
+                },
+                "protectedSettings": null
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm-dev-name'),'/', 'AzureDiskEncryption')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
+            ],
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "publisher": "Microsoft.Azure.Security",
+                "type": "AzureDiskEncryption",
+                "typeHandlerVersion": "2.2",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "1.0",
+                "settings": {
+                    "EncryptionOperation": "EnableEncryption",
+                    "KeyVaultURL": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('keyvault-name')), '2019-09-01').vaultUri]",
+                    "KeyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('keyvault-name'))]",
+                    "KeyEncryptionKeyURL": "",
+                    "KekVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('keyvault-name'))]",
+                    "KeyEncryptionAlgorithm": "RSA-OAEP",
+                    "VolumeType": "All",
+                    "ResizeOSDisk": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(variables('vm-dev-name'),'/', 'OMSExtension')]",
+            "apiVersion": "2020-06-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                "type": "MicrosoftMonitoringAgent",
+                "typeHandlerVersion": "1.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').customerId]"
+                },
+                "protectedSettings": {
+                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').primarySharedKey]"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

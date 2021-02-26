@@ -1,0 +1,225 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        },
+        "adminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The admin password of the VM"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "synapse-workspace-name": "[concat('synapse-', parameters('alias'))]",
+        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]",
+        "datalake-storageAccountUrl": "[concat('https://', variables('datalake-accountname'), '.dfs.core.windows.net')]",
+        "datalake-storageFilesystemName": "workspace",
+        "synapse-managedResourceGroupName": "[concat(resourceGroup().name, '-synapse')]",
+        "synapse-logicapp-pause": "[concat(variables('synapse-workspace-name'), '-logic-pause')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2019-06-01-preview",
+            "name": "[variables('synapse-workspace-name')]",
+            "location": "[resourceGroup().location]",
+            "type": "Microsoft.Synapse/workspaces",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "defaultDataLakeStorage": {
+                    "accountUrl": "[variables('datalake-storageAccountUrl')]",
+                    "filesystem": "[variables('datalake-storageFilesystemName')]"
+                },
+                "sqlAdministratorLogin": "azureuser",
+                "sqlAdministratorLoginPassword": "[parameters('adminPassword')]",
+                "adlaResourceId": "",
+                "managedVirtualNetwork": "default",
+                "managedResourceGroupName": "[variables('synapse-managedResourceGroupName')]",
+                "managedVirtualNetworkSettings": {
+                    "allowedAadTenantIdsForLinking": [],
+                    "preventDataExfiltration": false
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-06-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+                    ],
+                    "location": "[resourceGroup().location]",
+                    "name": "allowAll",
+                    "properties": {
+                        "startIpAddress": "0.0.0.0",
+                        "endIpAddress": "255.255.255.255"
+                    },
+                    "type": "firewallrules"
+                },
+                {
+                    "apiVersion": "2019-06-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+                    ],
+                    "location": "[resourceGroup().location]",
+                    "name": "default",
+                    "properties": {
+                        "grantSqlControlToManagedIdentity": {
+                            "desiredState": "Enabled"
+                        }
+                    },
+                    "type": "managedIdentitySqlControlSettings"
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+            "apiVersion": "2018-09-01-preview",
+            "name": "[concat(variables('datalake-accountname'), '/Microsoft.Authorization/',  '772dfbfe-014e-485e-b9cc-cd12e346a5e0')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "principalId": "[reference(concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name')), '2019-06-01-preview', 'Full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+            }
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/sqlPools",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(variables('synapse-workspace-name'), '/SQLPOOL1')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "DW100c"
+            },
+            "properties": {
+                "createMode": "Default",
+                "collation": "SQL_Latin1_General_CP1_CI_AS"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Synapse/workspaces/bigDataPools",
+            "apiVersion": "2019-06-01-preview",
+            "name": "[concat(variables('synapse-workspace-name'), '/', 'SPARKPOOL1')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "nodeCount": 2,
+                "nodeSizeFamily": "MemoryOptimized",
+                "nodeSize": "Medium",
+                "autoScale": {
+                    "enabled": true,
+                    "minNodeCount": 1,
+                    "maxNodeCount": 10
+                },
+                "autoPause": {
+                    "enabled": true,
+                    "delayInMinutes": 15
+                },
+                "sparkVersion": "2.4",
+                "sparkConfigProperties": {
+                    "filename": "",
+                    "content": ""
+                },
+                "libraryRequirements": {
+                    "filename": "",
+                    "content": ""
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+            ]
+        },
+        {
+            "name": "[variables('synapse-logicapp-pause')]",
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "location": "[resourceGroup().location]",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+            ],
+            "properties": {
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/schemas/2016-06-01/Microsoft.Logic.json",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$uri": {
+                            "type": "String"
+                        }
+                    },
+                    "triggers": {
+                        "Every_night_at_18": {
+                            "recurrence": {
+                                "frequency": "Week",
+                                "interval": 1,
+                                "schedule": {
+                                    "hours": [
+                                        "18"
+                                    ],
+                                    "minutes": [
+                                        0
+                                    ],
+                                    "weekDays": [
+                                        "Monday",
+                                        "Tuesday",
+                                        "Wednesday",
+                                        "Thursday",
+                                        "Friday"
+                                    ]
+                                },
+                                "timeZone": "Romance Standard Time"
+                            },
+                            "type": "Recurrence"
+                        }
+                    },
+                    "actions": {
+                        "HTTP": {
+                            "inputs": {
+                                "authentication": {
+                                    "type": "ManagedServiceIdentity"
+                                },
+                                "method": "POST",
+                                "uri": "@parameters('$uri')"
+                            },
+                            "runAfter": {},
+                            "type": "Http"
+                        }
+                    },
+                    "outputs": {
+                    }
+                },
+                "parameters": {
+                    "$uri": {
+                        "type": "String",
+                        "value": "[concat('https://management.azure.com/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Synapse/workspaces/', variables('synapse-workspace-name') ,'/sqlPools/SQLPOOL1/pause?api-version=2019-06-01-preview')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-09-01",
+            "type": "Microsoft.Authorization/roleAssignments",
+            "name": "[guid(concat(resourceGroup().id), resourceId('Microsoft.Logic/workflows', variables('synapse-logicapp-pause')), 'b24988ac-6180-42a0-ab88-20f7382dd24c')]", // Contributor
+            "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+                "principalId": "[reference(resourceId('Microsoft.Logic/workflows', variables('synapse-logicapp-pause')), '2017-07-01', 'full').identity.principalId]",
+                "scope": "[resourceGroup().id]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Logic/workflows/', variables('synapse-logicapp-pause'))]",
+                "[concat('Microsoft.Synapse/workspaces/', variables('synapse-workspace-name'))]"
+            ]
+        }
+    ],
+    "outputs": {}
+}
