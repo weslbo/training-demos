@@ -213,7 +213,8 @@
             "properties": {
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
                 "principalId": "[reference(resourceId('Microsoft.Logic/workflows', variables('synapse-logicapp-pause')), '2017-07-01', 'full').identity.principalId]",
-                "scope": "[resourceGroup().id]"
+                "scope": "[resourceGroup().id]",
+                "principalType": "ServicePrincipal"
             },
             "dependsOn": [
                 "[concat('Microsoft.Logic/workflows/', variables('synapse-logicapp-pause'))]",

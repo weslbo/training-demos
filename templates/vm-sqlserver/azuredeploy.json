@@ -210,6 +210,9 @@
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(variables('vm-sql-name'),'/', 'AzureDiskEncryption')]",
             "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-sql-name'))]"
+            ],
             "apiVersion": "2020-06-01",
             "properties": {
                 "publisher": "Microsoft.Azure.Security",
