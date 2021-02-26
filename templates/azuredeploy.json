@@ -37,7 +37,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/network/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/network/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -52,7 +52,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-development/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/vm-development/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -73,7 +73,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-sqlserver/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/vm-sqlserver/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -94,7 +94,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/storage/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/storage/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -110,7 +110,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/synapse/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/synapse/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -129,7 +129,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/datafactory/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/datafactory/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -151,7 +151,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/streaming/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/streaming/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -169,7 +169,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/sqldb/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/sqldb/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -187,7 +187,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/keyvault/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/keyvault/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {
@@ -203,7 +203,7 @@
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
-                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/loganalytics/azuredeploy.json",
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/loganalytics/azuredeploy.json",
                     "contentVersion": "1.0.0.0"
                 },
                 "parameters": {

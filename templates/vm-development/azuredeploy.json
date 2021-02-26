@@ -130,7 +130,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/vm-development/vm-deployment.ps1"
+                        "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/vm-development/vm-deployment.ps1"
                     ]
                 },
                 "protectedSettings": {

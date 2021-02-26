@@ -152,7 +152,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "https://raw.githubusercontent.com/weslbo/training-demos/main/templates/datafactory/gatewayInstall.ps1"
+                        "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/datafactory/gatewayInstall.ps1"
                     ]
                 },
                 "protectedSettings": {

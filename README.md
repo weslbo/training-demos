@@ -34,7 +34,7 @@ Create following secrets in Git Hub:
 
 ## Deploy manually or with GitHub Actions
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fweslbo%2Ftraining-demos%2Fmain%2Ftemplates%2Fazuredeploy.json)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fweslbo%2Ftraining-demos%2Fmaster%2Ftemplates%2Fazuredeploy.json)
 
 When redeploying, following issues can occur:
 
@@ -62,7 +62,7 @@ Connect the Synapse Analytics to GitHub by following [article](https://docs.micr
 | **Repository type** | GitHub |
 | **GitHub account** | [your account] |
 | **Repository name** | training-demos |
-| **Collaboration branch** | main |
+| **Collaboration branch** | master |
 | **Publish branch** | workspace_publish |
 | **Root folder** | /synapse |
 
@@ -73,6 +73,6 @@ Connect the Data Factory to GitHub
 | **Repository type** | GitHub |
 | **GitHub account** | [your account] |
 | **Repository name** | training-demos |
-| **Collaboration branch** | main |
+| **Collaboration branch** | master |
 | **Publish branch** | adf_publish |
 | **Root folder** | /data-factory |
