@@ -230,7 +230,7 @@
             }
         },
         {
-            "apiVersion": "2017-09-01",
+            "apiVersion": "2020-04-01-preview",
             "type": "Microsoft.Authorization/roleAssignments",
             "name": "[guid(concat(resourceGroup().id), resourceId('Microsoft.Logic/workflows', variables('vm-dev-logicapp-autostart')), '9980e02c-c2be-4d73-94e8-173b1dc7cf3c')]", // Virtual Machine Contributor
             "properties": {
