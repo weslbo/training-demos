@@ -300,28 +300,28 @@
                     "ResizeOSDisk": false
                 }
             }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('vm-dev-name'),'/', 'OMSExtension')]",
-            "apiVersion": "2020-06-01",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
-            ],
-            "properties": {
-                "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-                "type": "MicrosoftMonitoringAgent",
-                "typeHandlerVersion": "1.0",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').customerId]"
-                },
-                "protectedSettings": {
-                    "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').primarySharedKey]"
-                }
-            }
-        }
+        }//,
+        // {
+        //     "type": "Microsoft.Compute/virtualMachines/extensions",
+        //     "name": "[concat(variables('vm-dev-name'),'/', 'OMSExtension')]",
+        //     "apiVersion": "2020-06-01",
+        //     "location": "[resourceGroup().location]",
+        //     "dependsOn": [
+        //         "[concat('Microsoft.Compute/virtualMachines/', variables('vm-dev-name'))]"
+        //     ],
+        //     "properties": {
+        //         "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+        //         "type": "MicrosoftMonitoringAgent",
+        //         "typeHandlerVersion": "1.0",
+        //         "autoUpgradeMinorVersion": true,
+        //         "settings": {
+        //             "workspaceId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').customerId]"
+        //         },
+        //         "protectedSettings": {
+        //             "workspaceKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces/', variables('loganalytics-name')), '2020-08-01').primarySharedKey]"
+        //         }
+        //     }
+        // }
     ],
     "outputs": {}
 }

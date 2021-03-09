@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+         "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "workspaceName": "[concat('databricks-', parameters('alias'))]",
+        "managedResourceGroupName": "[concat(resourceGroup().name, '-databricks')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Databricks/workspaces",
+            "apiVersion": "2018-04-01",
+            "name": "[variables('workspaceName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "premium"
+            },
+            "properties": {
+                "managedResourceGroupId": "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('managedResourceGroupName'))]",
+                "parameters": {
+                    "enableNoPublicIp": {
+                        "value": false
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

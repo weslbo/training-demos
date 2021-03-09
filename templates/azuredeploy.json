@@ -210,6 +210,24 @@
                     "alias": { "value": "[toLower(parameters('alias'))]" }
                 }
             }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "databrikcs",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/databricks/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" }
+                }
+            },
+            "dependsOn": [
+                "network"
+            ]
         }
     ],
     "outputs": {}
