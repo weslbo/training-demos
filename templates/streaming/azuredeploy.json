@@ -128,22 +128,7 @@
                     }
                 ],
                 "outputs": [
-                    {
-                        "name": "output-events",
-                        "properties": {
-                            "datasource": {
-                                "type": "PowerBI",
-                                "properties": {
-                                    "dataset": "CallStream-Dataset",
-                                    "table": "fraudulent-calls",
-                                    "groupId": "c1f3d30d-c98d-43fd-82b8-4148df5c871a",
-                                    "groupName": "Data Analyst - DA100",
-                                    "tokenUserPrincipalName": "wedebols@microsoft.com",
-                                    "tokenUserDisplayName": "Wesley De Bolster"
-                                }
-                            }
-                        }
-                    }
+                    
                 ]
             }
         }

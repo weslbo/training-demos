@@ -89,6 +89,9 @@
             "type": "Microsoft.Sql/servers/securityAlertPolicies",
             "apiVersion": "2017-03-01-preview",
             "name": "[concat(variables('sql-servername'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sql-servername'))]"
+            ],
             "properties": {
                 "state": "Enabled",
                 "emailAccountAdmins": false
