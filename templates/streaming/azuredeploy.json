@@ -61,20 +61,18 @@
                         }
                     }
                 }
-            },
-            "resources": [
-                {
-                    "apiVersion": "2017-04-01",
-                    "name": "[variables('asa-policy-name')]",
-                    "type": "authorizationRules",
-                    "dependsOn": [
-                        "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'), '/eventhubs/', variables('eventhub-name'))]"
-                    ],
-                    "properties": {
-                        "rights": [ "Send", "Listen", "Manage" ]
-                    }
-                }
-            ]
+            }
+        },
+        {
+            "apiVersion": "2017-04-01",
+            "name": "[concat(variables('eventhub-namespace'), '/', variables('asa-policy-name'))]",
+            "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+            "dependsOn": [
+                "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'))]"
+            ],
+            "properties": {
+                "rights": [ "Send", "Listen", "Manage" ]
+            }
         },
         {
             "type": "Microsoft.StreamAnalytics/StreamingJobs",
@@ -82,8 +80,7 @@
             "name": "[variables('streamanalytics-job-name')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub-namespace'))]",
-                "[resourceId('Microsoft.EventHub', variables('eventhub-name'))]"
+                "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'))]"
             ],
             "properties": {
                 "sku": {
