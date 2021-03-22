@@ -92,7 +92,7 @@
         {
             "type": "Microsoft.Synapse/workspaces/sqlPools",
             "apiVersion": "2019-06-01-preview",
-            "name": "[concat(variables('synapse-workspace-name'), '/synapse-sql-dwh')]",
+            "name": "[concat(variables('synapse-workspace-name'), '/synapsesqldwh')]",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "DW100c"
@@ -108,7 +108,7 @@
         {
             "type": "Microsoft.Synapse/workspaces/bigDataPools",
             "apiVersion": "2019-06-01-preview",
-            "name": "[concat(variables('synapse-workspace-name'), '/', 'synapse-sparkpool')]",
+            "name": "[concat(variables('synapse-workspace-name'), '/', 'synapsesparkpool')]",
             "location": "[resourceGroup().location]",
             "properties": {
                 "nodeCount": 2,
@@ -201,7 +201,7 @@
                 "parameters": {
                     "$uri": {
                         "type": "String",
-                        "value": "[concat('https://management.azure.com/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Synapse/workspaces/', variables('synapse-workspace-name') ,'/sqlPools/synapse-sql-dwh/pause?api-version=2019-06-01-preview')]"
+                        "value": "[concat('https://management.azure.com/subscriptions/', subscription().subscriptionId ,'/resourceGroups/', resourceGroup().name ,'/providers/Microsoft.Synapse/workspaces/', variables('synapse-workspace-name') ,'/sqlPools/synapsesqldwh/pause?api-version=2019-06-01-preview')]"
                     }
                 }
             }

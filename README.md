@@ -38,7 +38,7 @@ Create following secrets in Git Hub:
 
 When redeploying, following issues can occur:
 
-- DeploymentFailed: UpdateNotAllowedOnPausedDatabase. Attempted to perform an update on a paused database. Current work around: start the synapse-sql-dwh
+- DeploymentFailed: UpdateNotAllowedOnPausedDatabase. Attempted to perform an update on a paused database. Current work around: start the synapsesqldwh
 - Microsoft.Compute/virtualMachines/vm-sqlserver is not in running state. Current work around: start the vm
 
 ## Additional scripts to execute

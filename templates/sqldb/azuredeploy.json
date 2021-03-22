@@ -84,6 +84,15 @@
                 "requestedServiceObjectiveName": "Basic",
                 "sampleName": "AdventureWorksLT"
             }
+        },
+        {
+            "type": "Microsoft.Sql/servers/securityAlertPolicies",
+            "apiVersion": "2017-03-01-preview",
+            "name": "[concat(variables('sql-servername'), '/Default')]",
+            "properties": {
+                "state": "Enabled",
+                "emailAccountAdmins": false
+            }
         }
     ],
     "outputs": {}

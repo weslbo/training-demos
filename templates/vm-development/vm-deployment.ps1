@@ -2,11 +2,11 @@
 Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
 # Initialize disk
-Initialize-Disk -Number 2
-New-Partition -DiskNumber 2 -UseMaximumSize -DriveLetter F
-Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false -DriveLetter F
-mkdir F:\Cleanup
-mkdir F:\Git
+# Initialize-Disk -Number 2
+# New-Partition -DiskNumber 2 -UseMaximumSize -DriveLetter F
+# Format-Volume -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false -DriveLetter F
+# mkdir F:\Cleanup
+# mkdir F:\Git
 
 # Install Software
 choco install visualstudiocode -y
