@@ -92,10 +92,7 @@
             },
             "identity": {
                 "type": "systemAssigned"
-            },
-            "zones": [
-                "1"
-            ]
+            }
         },
         {
             "name": "[variables('vm-dev-networkInterface')]",

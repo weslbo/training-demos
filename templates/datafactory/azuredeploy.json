@@ -98,34 +98,6 @@
                     "dependsOn": [
                         "[variables('datafactory-name')]"
                     ]
-                },
-                {
-                    "name": "[variables('vm-sql-name')]",
-                    "type": "linkedServices",
-                    "apiVersion": "2018-06-01",
-                    "properties": {
-                        "type": "SqlServer",
-                        "typeProperties": {
-                            "connectionString": {
-                                "type": "SecureString",
-                                "value": "[concat('Data Source=', variables('vm-sql-name') ,';Initial Catalog=master;Integrated Security=True;')]",
-                                "userName": "[variables('vm-sql-username')]",
-                                "password": {
-                                    "type": "SecureString",
-                                    "value": "[parameters('adminPassword')]"
-                                }
-                            }
-                        },
-                        "connectVia": {
-                            "referenceName": "[variables('selfHostedIRName')]",
-                            "type": "IntegrationRuntimeReference"
-                        }
-                    },
-                    "dependsOn": [
-                        "[variables('datafactory-name')]",
-                        "[variables('selfHostedIRName')]",
-                        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('vm-sql-name'), concat('Install-', variables('selfHostedIRName')))]"
-                    ]
                 }
             ]
         },
