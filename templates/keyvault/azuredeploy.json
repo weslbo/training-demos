@@ -17,7 +17,7 @@
     },
     "functions": [],
     "variables": {
-        "keyvault-name": "[concat('keyvault', uniqueString(resourceGroup().id))]"
+        "keyvault-name": "[concat('keyvault-', uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {

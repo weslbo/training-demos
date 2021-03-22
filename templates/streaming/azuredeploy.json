@@ -14,7 +14,8 @@
         "eventhub-namespace": "[concat('eventhub-ns-', parameters('alias'))]",
         "eventhub-name": "[concat('eventhub-', parameters('alias'))]",
         "streamanalytics-job-name": "[concat('asa-', parameters('alias'), '-streaming')]",
-        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]"
+        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]",
+        "asa-policy-name": "[concat('policy-', variables('streamanalytics-job-name'))]"
     },
     "resources": [
         {
@@ -60,13 +61,30 @@
                         }
                     }
                 }
-            }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2017-04-01",
+                    "name": "[variables('asa-policy-name')]",
+                    "type": "authorizationRules",
+                    "dependsOn": [
+                        "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'), '/eventhubs/', variables('eventhub-name'))]"
+                    ],
+                    "properties": {
+                        "rights": [ "Send", "Listen", "Manage" ]
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.StreamAnalytics/StreamingJobs",
             "apiVersion": "2019-06-01",
             "name": "[variables('streamanalytics-job-name')]",
             "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.EventHub/namespaces', variables('eventhub-namespace'))]",
+                "[resourceId('Microsoft.EventHub', variables('eventhub-name'))]"
+            ],
             "properties": {
                 "sku": {
                     "name": "standard"
@@ -80,9 +98,57 @@
                     "name": "Transformation",
                     "properties": {
                         "streamingUnits": 1,
-                        "query": "SELECT\r\n    *\r\nINTO\r\n    [YourOutputAlias]\r\nFROM\r\n    [YourInputAlias]"
+                        "query": "SELECT System.Timestamp AS WindowEnd, COUNT(*) AS FraudulentCalls\r\nINTO 'output-events'\r\nFROM 'input-events' CS1 TIMESTAMP BY CallRecTime\r\nJOIN 'input-events' CS2 TIMESTAMP BY CallRecTime ON CS1.CallingIMSI = CS2.CallingIMSI AND DATEDIFF(ss, CS1, CS2) BETWEEN 1 AND 5\r\nWHERE CS1.SwitchNum != CS2.SwitchNum\r\nGROUP BY TumblingWindow(Duration(second, 1))\r\n"
                     }
-                }
+                },
+                "inputs": [
+                    {
+                        "name": "input-events",
+                        "properties": {
+                            "type": "Stream",
+                            "datasource": {
+                                "type": "Microsoft.EventHub/EventHub",
+                                "properties": {
+                                    "consumerGroupName": "",
+                                    "eventHubName": "[variables('eventhub-name')]",
+                                    "serviceBusNamespace": "[variables('eventhub-namespace')]",
+                                    "sharedAccessPolicyName": "[variables('asa-policy-name')]",
+                                    "authenticationMode": "ConnectionString"
+                                }
+                            },
+                            "compression": {
+                                "type": "None"
+                            },
+                            "serialization": {
+                                "type": "Json",
+                                "properties": {
+                                    "encoding": "UTF8"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "outputs": [
+                    {
+                        "name": "output-events",
+                        "properties": {
+                            "datasource": {
+                                "type": "PowerBI",
+                                "properties": {
+                                    "authenticationMode": "UserToken",
+                                    "dataset": "CallStream-Dataset",
+                                    "table": "fraudulent-calls",
+                                    "groupId": "c1f3d30d-c98d-43fd-82b8-4148df5c871a",
+                                    "groupName": "Data Analyst - DA100",
+                                    "refreshToken": null,
+                                    "accessToken": null,
+                                    "tokenUserPrincipalName": "wedebols@microsoft.com",
+                                    "tokenUserDisplayName": "Wesley De Bolster"
+                                }
+                            }
+                        }
+                    }
+                ]
             }
         }
     ],

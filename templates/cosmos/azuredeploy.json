@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "cosmosAccountName": "[concat('cosmos-', parameters('alias'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-04-01",
+            "kind": "GlobalDocumentDB",
+            "type": "Microsoft.DocumentDb/databaseAccounts",
+            "name": "[variables('cosmosAccountName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "databaseAccountOfferType": "Standard",
+                "locations": [
+                    {
+                        "id": "[concat(variables('cosmosAccountName'), '-', 'West Europe')]",
+                        "failoverPriority": 0,
+                        "locationName": "'West Europe'"
+                    }
+                ],
+                "backupPolicy": {
+                    "type": "Periodic",
+                    "periodicModeProperties": {
+                        "backupIntervalInMinutes": 240,
+                        "backupRetentionIntervalInHours": 8
+                    }
+                },
+                "isVirtualNetworkFilterEnabled": false,
+                "virtualNetworkRules": [],
+                "ipRules": [],
+                "dependsOn": [],
+                "enableMultipleWriteLocations": false,
+                "capabilities": [],
+                "enableFreeTier": false
+            },
+            "tags": {
+                "defaultExperience": "Core (SQL)",
+                "hidden-cosmos-mmspecial": "",
+                "CosmosAccountType": "Non-Production"
+            }
+        },
+        {
+            "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
+            "apiVersion": "2020-09-01",
+            "name": "[concat(variables('cosmosAccountName'), '/Database')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosAccountName'))]"
+            ],
+            "properties": {
+                "resource": {
+                    "id": "Database"
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

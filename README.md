@@ -38,7 +38,7 @@ Create following secrets in Git Hub:
 
 When redeploying, following issues can occur:
 
-- DeploymentFailed: UpdateNotAllowedOnPausedDatabase. Attempted to perform an update on a paused database. Current work around: start the SQLPOOL1
+- DeploymentFailed: UpdateNotAllowedOnPausedDatabase. Attempted to perform an update on a paused database. Current work around: start the synapse-sql-dwh
 - Microsoft.Compute/virtualMachines/vm-sqlserver is not in running state. Current work around: start the vm
 
 ## Additional scripts to execute
@@ -48,7 +48,7 @@ Add yourself as the System Administrator for Azure Synapse Analytics
 ```bash
 $alias = "alias"
 $upn = "alias@company.com"
-$resourcegroup = "rg-training-demos"
+$resourcegroup = "rg-demo"
 $workspacename = "synapse-$alias"
 
 az role assignment create --assignee $upn --role "owner" --resource-group $resourcegroup

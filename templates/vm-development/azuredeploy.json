@@ -26,7 +26,7 @@
         "vm-dev-script-extension-choco": "[concat(variables('vm-dev-name'), '/choco')]",
         "vm-dev-shutdown-name": "[concat('shutdown-computevm-', variables('vm-dev-name'))]",
         "vm-dev-logicapp-autostart": "[concat(variables('vm-dev-name'), '-logic-start')]",
-        "keyvault-name": "[concat('keyvault', uniqueString(resourceGroup().id))]",
+        "keyvault-name": "[concat('keyvault-', uniqueString(resourceGroup().id))]",
         "loganalytics-name": "[concat('loganalytics-', parameters('alias'))]"
     },
     "resources": [

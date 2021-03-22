@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "alias": {
+            "type": "String",
+            "metadata": {
+                "description": "Specify your initials"
+            }
+        }
+    },
+    "functions": [],
+    "variables": {
+        "cognitiveServicesName": "[concat('cognitive-', parameters('alias'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Maps/accounts",
+            "apiVersion": "2018-05-01",
+            "name": "maps",
+            "location": "global",
+            "sku": {
+                "name": "s0"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2017-04-18",
+            "name": "[variables('cognitiveServicesName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "CognitiveServices",
+            "properties": {
+                "statisticsEnabled": false
+            }
+        }
+    ],
+    "outputs": {}
+}

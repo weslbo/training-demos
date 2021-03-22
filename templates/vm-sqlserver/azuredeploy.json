@@ -25,7 +25,7 @@
         "vm-sql-data-disk-name": "[concat(variables('vm-sql-name'), '-disk-data')]",
         "vm-sql-log-disk-name": "[concat(variables('vm-sql-name'), '-disk-log')]",
         "vm-sql-shutdown-name": "[concat('shutdown-computevm-', variables('vm-sql-name'))]",
-        "keyvault-name": "[concat('keyvault', uniqueString(resourceGroup().id))]",
+        "keyvault-name": "[concat('keyvault-', uniqueString(resourceGroup().id))]",
         "loganalytics-name": "[concat('loganalytics-', parameters('alias'))]"
     },
     "resources": [
