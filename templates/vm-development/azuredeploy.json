@@ -27,7 +27,8 @@
         "vm-dev-shutdown-name": "[concat('shutdown-computevm-', variables('vm-dev-name'))]",
         "vm-dev-logicapp-autostart": "[concat(variables('vm-dev-name'), '-logic-start')]",
         "keyvault-name": "[concat('keyvault-', uniqueString(resourceGroup().id))]",
-        "loganalytics-name": "[concat('loganalytics-', parameters('alias'))]"
+        "loganalytics-name": "[concat('loganalytics-', parameters('alias'))]",
+        "vhd-storage-accountName": "[concat('vhd', parameters('alias'), uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -46,8 +47,8 @@
                     "osDisk": {
                         "name": "[variables('vm-dev-os-disk-name')]",
                         "createOption": "fromImage",
-                        "managedDisk": {
-                            "storageAccountType": "Premium_LRS"
+                        "vhd": {
+                            "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vhd-storage-accountName')), '2016-01-01').primaryEndpoints.blob, 'vhds/', variables('vm-dev-os-disk-name'), '.vhd')]"
                         }
                     },
                     "imageReference": {
@@ -62,8 +63,8 @@
                             "lun": "0",
                             "createOption": "Empty",
                             "diskSizeGB": "1023",
-                            "managedDisk": {
-                                "storageAccountType": "Premium_LRS"
+                            "vhd": {
+                                "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vhd-storage-accountName')), '2016-01-01').primaryEndpoints.blob, 'vhds/', variables('vm-dev-data-disk-name'), '.vhd')]"
                             }
                         }
                     ]
@@ -302,7 +303,7 @@
                     "ResizeOSDisk": false
                 }
             }
-        }//,
+        } //,
         // {
         //     "type": "Microsoft.Compute/virtualMachines/extensions",
         //     "name": "[concat(variables('vm-dev-name'),'/', 'OMSExtension')]",

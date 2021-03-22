@@ -63,7 +63,8 @@
             "dependsOn": [
                 "network",
                 "keyvault",
-                "loganalytics"
+                "loganalytics",
+                "storage"
             ]
         },
         {
@@ -84,7 +85,8 @@
             "dependsOn": [
                 "network",
                 "keyvault",
-                "loganalytics"
+                "loganalytics",
+                "storage"
             ]
         },
         {

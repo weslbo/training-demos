@@ -17,7 +17,8 @@
     },
     "functions": [],
     "variables": {
-        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]"
+        "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]",
+        "vhd-storage-accountName": "[concat('vhd', parameters('alias'), uniqueString(resourceGroup().id))]"
     },
     "resources": [
         {
@@ -143,6 +144,16 @@
             "properties": {
                 "publicAccess": "None"
             }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('vhd-storage-accountName')]",
+            "apiVersion": "2019-04-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Premium_LRS"
+            },
+            "kind": "StorageV2"
         }
     ],
     "outputs": {}
