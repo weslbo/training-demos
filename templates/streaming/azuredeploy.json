@@ -80,7 +80,8 @@
             "name": "[variables('streamanalytics-job-name')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'))]"
+                "[concat('Microsoft.EventHub/namespaces/', variables('eventhub-namespace'))]",
+                "[resourceId('Microsoft.Eventhub/namespaces/authorizationRules', variables('eventhub-namespace'), variables('asa-policy-name'))]"
             ],
             "properties": {
                 "sku": {
@@ -110,6 +111,7 @@
                                     "eventHubName": "[variables('eventhub-name')]",
                                     "serviceBusNamespace": "[variables('eventhub-namespace')]",
                                     "sharedAccessPolicyName": "[variables('asa-policy-name')]",
+                                    "sharedAccessPolicyKey": "[listKeys(resourceId('Microsoft.Eventhub/namespaces/authorizationRules', variables('eventhub-namespace'), variables('asa-policy-name')), '2017-04-01').primaryKey]",
                                     "authenticationMode": "ConnectionString"
                                 }
                             },
@@ -132,13 +134,10 @@
                             "datasource": {
                                 "type": "PowerBI",
                                 "properties": {
-                                    "authenticationMode": "UserToken",
                                     "dataset": "CallStream-Dataset",
                                     "table": "fraudulent-calls",
                                     "groupId": "c1f3d30d-c98d-43fd-82b8-4148df5c871a",
                                     "groupName": "Data Analyst - DA100",
-                                    "refreshToken": null,
-                                    "accessToken": null,
                                     "tokenUserPrincipalName": "wedebols@microsoft.com",
                                     "tokenUserDisplayName": "Wesley De Bolster"
                                 }

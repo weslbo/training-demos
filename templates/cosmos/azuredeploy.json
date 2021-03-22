@@ -24,9 +24,8 @@
                 "databaseAccountOfferType": "Standard",
                 "locations": [
                     {
-                        "id": "[concat(variables('cosmosAccountName'), '-', 'West Europe')]",
                         "failoverPriority": 0,
-                        "locationName": "'West Europe'"
+                        "locationName": "West Europe"
                     }
                 ],
                 "backupPolicy": {
@@ -52,10 +51,10 @@
         },
         {
             "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases",
-            "apiVersion": "2020-09-01",
-            "name": "[concat(variables('cosmosAccountName'), '/Database')]",
-            "dependsOn": [
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosAccountName'))]"
+            "apiVersion": "2021-01-15",
+            "name": "[concat(variables('cosmosAccountName'), '/', 'Database')]",
+            "dependsOn": [ 
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosAccountName'))]" 
             ],
             "properties": {
                 "resource": {

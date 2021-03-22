@@ -23,7 +23,6 @@ choco install servicebusexplorer -y
 choco install freshbing -y
 choco install microsoft-windows-terminal --pre -y
 choco install docker-desktop -y
-net localgroup docker-users azureuser /add
 choco install wsl2 -y
 choco install wsl-ubuntu-2004 -y
 choco install powerbi -y
@@ -64,4 +63,4 @@ code --install-extension vscjava.vscode-java-pack --force
 code --install-extension golang.Go --force
 code --install-extension ms-python.python --force
 npm install -g artillery
-Restart-Computer
+net localgroup docker-users azureuser /add
