@@ -121,7 +121,10 @@
                     "alias": { "value": "[toLower(parameters('alias'))]" },
                     "userObjectId": { "value": "[parameters('userObjectId')]" }
                 }
-            }
+            },
+            "dependsOn": [
+                "network"
+            ]
         },
         {
             "type": "Microsoft.Resources/deployments",
