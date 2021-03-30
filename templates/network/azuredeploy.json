@@ -11,9 +11,7 @@
     },
     "functions": [],
     "variables": {
-        "virtualNetworkName": "[concat('vnet-', parameters('alias'))]",
-        "publicIpAddressesBastion": "bastion-pip",
-        "bastionHostName": "bastion"
+        "virtualNetworkName": "[concat('vnet-', parameters('alias'))]"
     },
     "resources": [
         {
@@ -21,6 +19,9 @@
             "name": "[variables('virtualNetworkName')]",
             "apiVersion": "2020-05-01",
             "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups/', 'nsg-development')]"
+            ],
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -32,20 +33,22 @@
                         "name": "DevelopmentSubnet",
                         "properties": {
                             "addressPrefix": "10.0.0.0/24",
-                            "privateEndpointNetworkPolicies": "Disabled"
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled",
+                            "serviceEndpoints": [
+                                {
+                                    "service": "Microsoft.Storage"
+                                }
+                            ],
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'nsg-development')]"
+                            }
                         }
                     },
                     {
                         "name": "AzureBastionSubnet",
                         "properties": {
                             "addressPrefix": "10.0.1.0/24"
-                        }
-                    },
-                    {
-                        "name": "DataSubnet",
-                        "properties": {
-                            "addressPrefix": "10.0.2.0/24",
-                            "privateEndpointNetworkPolicies": "Disabled"
                         }
                     }
                 ]
@@ -64,45 +67,11 @@
             ]
         },
         {
-            "name": "[variables('publicIpAddressesBastion')]",
-            "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "nsg-development",
             "location": "[resourceGroup().location]",
-            "properties": {
-                "publicIpAllocationMethod": "Static"
-            },
-            "sku": {
-                "name": "Standard"
-            },
-            "zones": [
-                "1"
-            ]
-        },
-        {
-            "apiVersion": "2020-05-01",
-            "type": "Microsoft.Network/bastionHosts",
-            "name": "[variables('bastionHostName')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressesBastion'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'AzureBastionSubnet')]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "IpConf",
-                        "properties": {
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'AzureBastionSubnet')]"
-                            },
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIpAddresses', variables('publicIpAddressesBastion'))]"
-                            }
-                        }
-                    }
-                ]
-            }
+            "tags": {}
         }
     ],
     "outputs": {}

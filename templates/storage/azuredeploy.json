@@ -18,7 +18,8 @@
     "functions": [],
     "variables": {
         "datalake-accountname": "[concat('dl', parameters('alias'), uniqueString(resourceGroup().id))]",
-        "vhd-storage-accountName": "[concat('vhd', parameters('alias'), uniqueString(resourceGroup().id))]"
+        "vhd-storage-accountName": "[concat('vhd', parameters('alias'), uniqueString(resourceGroup().id))]",
+        "virtualNetworkName": "[concat('vnet-', parameters('alias'))]"
     },
     "resources": [
         {
@@ -35,9 +36,14 @@
                 "isHnsEnabled": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [],
+                    "virtualNetworkRules": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'DevelopmentSubnet')]",
+                            "action": "Allow"
+                        }
+                    ],
                     "ipRules": [],
-                    "defaultAction": "Allow"
+                    "defaultAction": "Deny"
                 },
                 "supportsHttpsTrafficOnly": true,
                 "allowBlobPublicAccess": false,
@@ -153,7 +159,23 @@
             "sku": {
                 "name": "Premium_LRS"
             },
-            "kind": "StorageV2"
+            "kind": "StorageV2",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'DevelopmentSubnet')]",
+                            "action": "Allow"
+                        }
+                    ],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "allowBlobPublicAccess": false,
+                "minimumTlsVersion": "TLS1_2"
+            }
         }
     ],
     "outputs": {}

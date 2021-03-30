@@ -30,7 +30,12 @@
     "functions": [],
     "variables": {
         "sql-servername": "[concat('sqlserver-', parameters('alias'))]",
-        "sql-databaseName": "[concat(variables('sql-servername'),'/AdventureWorksLT')]"
+        "sql-databaseName": "[concat(variables('sql-servername'),'/AdventureWorksLT')]",
+
+        "virtualNetworkName": "[concat('vnet-', parameters('alias'))]",
+        "privateEndpointName": "[concat('sqlserver-', parameters('alias'), '-private-endpoint')]",
+        "privateDnsZoneName": "privatelink.database.windows.net",
+        "privateEndpointDnsGroupMame": "[concat(variables('privateEndpointName'),'/default')]"
     },
     "resources": [
         {
@@ -43,7 +48,7 @@
                 "administratorLogin": "azureuser",
                 "administratorLoginPassword": "[parameters('adminPassword')]",
                 "version": "12.0",
-                "publicNetworkAccess": "Enabled",
+                "publicNetworkAccess": "Disabled",
                 "startIpAddress": "0.0.0.0",
                 "endIpAddress": "0.0.0.0"
             },
@@ -95,6 +100,80 @@
             "properties": {
                 "state": "Enabled",
                 "emailAccountAdmins": false
+            }
+        },
+
+
+
+
+
+
+
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('privateEndpointName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sql-servername'))]"
+            ],
+            "properties": {
+                "subnet": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), 'DevelopmentSubnet')]"
+                },
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('privateEndpointName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', variables('sql-servername'))]",
+                            "groupIds": [
+                                "sqlServer"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2020-01-01",
+            "name": "[variables('privateDnsZoneName')]",
+            "location": "global",
+            "properties": ""
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2020-01-01",
+            "name": "[concat(variables('privateDnsZoneName'), '/', variables('privateDnsZoneName'), '-link')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('privateEndpointDnsGroupMame')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]",
+                "[variables('privateEndpointName')]"
+            ],
+            "properties": {
+                "privateDnsZoneConfigs": [
+                    {
+                        "name": "config1",
+                        "properties": {
+                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', variables('privateDnsZoneName'))]"
+                        }
+                    }
+                ]
             }
         }
     ],

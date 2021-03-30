@@ -20,7 +20,7 @@
         "virtualNetworkName": "[concat('vnet-', parameters('alias'))]",
         "vm-sql-name": "vm-sqlserver",
         "vm-sql-networkInterface": "[concat(variables('vm-sql-name'), '-nic')]",
-        "vm-sql-subnet-ref": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName')), '/subnets/', 'DataSubnet')]",
+        "vm-sql-subnet-ref": "[concat(resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName')), '/subnets/', 'DevelopmentSubnet')]",
         "vm-sql-os-disk-name": "[concat(variables('vm-sql-name'), '-disk-os')]",
         "vm-sql-data-disk-name": "[concat(variables('vm-sql-name'), '-disk-data')]",
         "vm-sql-log-disk-name": "[concat(variables('vm-sql-name'), '-disk-log')]",
@@ -62,7 +62,7 @@
                             "lun": "0",
                             "createOption": "Empty",
                             "caching": "ReadOnly",
-                            "diskSizeGB": "1023",
+                            "diskSizeGB": "127",
                             "writeAcceleratorEnabled": false,
                             "vhd": {
                                 "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vhd-storage-accountName')), '2016-01-01').primaryEndpoints.blob, 'vhds/', variables('vm-sql-data-disk-name'), '.vhd')]"
@@ -73,7 +73,7 @@
                             "lun": "1",
                             "createOption": "Empty",
                             "caching": "None",
-                            "diskSizeGB": "1023",
+                            "diskSizeGB": "127",
                             "writeAcceleratorEnabled": false,
                             "vhd": {
                                 "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vhd-storage-accountName')), '2016-01-01').primaryEndpoints.blob, 'vhds/', variables('vm-sql-log-disk-name'), '.vhd')]"

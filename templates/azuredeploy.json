@@ -48,6 +48,24 @@
         {
             "type": "Microsoft.Resources/deployments",
             "apiVersion": "2018-05-01",
+            "name": "bastion",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "https://raw.githubusercontent.com/weslbo/training-demos/master/templates/bastion/azuredeploy.json",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "alias": { "value": "[toLower(parameters('alias'))]" }
+                }
+            },
+            "dependsOn": [
+                "network"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
             "name": "vm-development",
             "properties": {
                 "mode": "Incremental",
@@ -180,7 +198,10 @@
                     "userUpn": { "value": "[parameters('userUpn')]" },
                     "userObjectId": { "value": "[parameters('userObjectId')]" }
                 }
-            }
+            },
+            "dependsOn": [
+                "network"
+            ]
         },
         {
             "type": "Microsoft.Resources/deployments",
@@ -244,7 +265,10 @@
                 "parameters": {
                     "alias": { "value": "[toLower(parameters('alias'))]" }
                 }
-            }
+            },
+            "dependsOn": [
+                "network"
+            ]
         },
         {
             "type": "Microsoft.Resources/deployments",
